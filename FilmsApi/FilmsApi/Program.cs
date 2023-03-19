@@ -3,6 +3,7 @@ using FilmsApi.Filters;
 using FilmsApi.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,15 @@ builder.Services.AddTransient<MyActionFilter>();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(ExceptionFilter));
+});
+ 
+builder.Services.AddCors(options => {
+    var MyConfig = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+    var frontend_url = MyConfig.GetValue<string>("frontend_url");
+    options.AddDefaultPolicy(_builder =>
+    {
+        _builder.WithOrigins(frontend_url).AllowAnyMethod().AllowAnyHeader();
+    });
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -45,6 +55,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
+
+app.UseCors();
 
 app.UseResponseCaching();
 
